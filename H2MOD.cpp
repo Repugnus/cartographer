@@ -4,6 +4,7 @@
 #include <sstream>
 #include "H2MOD.h"
 #include "H2MOD_GunGame.h"
+#include "H2MOD_HeadHunter.h"
 #include "H2MOD_Infection.h"
 #include "H2MOD_Halo2Final.h"
 #include "Network.h"
@@ -18,11 +19,13 @@
 
 H2MOD *h2mod = new H2MOD();
 GunGame *gg = new GunGame();
+HeadHunter *hh = new HeadHunter();
 Infection *inf = new Infection();
 Halo2Final *h2f = new Halo2Final();
 
 bool b_Infection = false;
 bool b_Halo2Final = false;
+bool b_HeadHunter;
 
 extern bool b_GunGame;
 extern CUserManagement User;
@@ -818,10 +821,16 @@ char __cdecl OnPlayerDeath(int unit_datum_index, int a2, char a3, char a4)
 		gg->PlayerDied(unit_datum_index);
 #pragma endregion
 
+#pragma region HeadHunter Handler
+	if (b_HeadHunter && (h2mod->Server || isHost))
+		hh->PlayerDied(unit_datum_index);
+#pragma endregion
+
 #pragma region Infection Handler
 	if (b_Infection)
 		inf->PlayerInfected(unit_datum_index);
 #pragma endregion
+
 
 	return pplayer_death(unit_datum_index, a2, a3, a4);
 }
@@ -937,6 +946,7 @@ int __cdecl OnMapLoad(int a1)
 
 	b_Infection = false;
 	b_GunGame = false;
+	b_HeadHunter = false;
 	b_Halo2Final = false;
 
 	wchar_t* variant_name = (wchar_t*)(((char*)h2mod->GetBase()) + ((h2mod->Server) ? 0x534A18 : 0x97777C));
@@ -960,6 +970,13 @@ int __cdecl OnMapLoad(int a1)
 		{
 			TRACE_GAME("[h2mod] GunGame Turned on!");
 			b_GunGame = true;
+		}
+
+		if (wcsstr(variant_name, L"HeadHunter") > 0 || wcsstr(variant_name, L"headhunter") > 0 || wcsstr(variant_name, L"Headhunter") > 0)
+
+		{
+			TRACE_GAME("[h2mod] HeadHunter Turned on!");
+			b_HeadHunter = true;
 		}
 
 		if (wcsstr(variant_name, L"H2F") > 0 || wcsstr(variant_name, L"h2f") > 0 || wcsstr(variant_name, L"Halo2Final") > 0 || wcsstr(variant_name, L"halo2final") > 0)
@@ -1072,6 +1089,11 @@ int __cdecl OnMapLoad(int a1)
 				gg->Initialize();
 #pragma endregion
 
+#pragma region HeadHunter Handler
+			if (b_HeadHunter && isHost)
+				hh->Initialize();
+#pragma endregion
+
 #pragma region Apply Hitfix
 			int offset = 0x47CD54;
 			if (h2mod->Server)
@@ -1107,6 +1129,10 @@ int __cdecl OnMapLoad(int a1)
 #pragma region GunGame Handler
 			if (b_GunGame)
 				gg->Initialize();
+#pragma endregion
+#pragma region HeadHunter Handler
+			if (b_HeadHunter)
+				hh->Initialize();
 #pragma endregion
 
 
@@ -1166,6 +1192,10 @@ bool __cdecl OnPlayerSpawn(int a1)
 #pragma region GunGame Handler
 	if (b_GunGame && (isHost || h2mod->Server))
 		gg->SpawnPlayer(PlayerIndex);
+#pragma endregion
+#pragma region HeadHunter Handler
+	if (b_HeadHunter && (isHost || h2mod->Server))
+		hh->SpawnPlayer(PlayerIndex);
 #pragma endregion
 
 	if (!b_Infection) {
