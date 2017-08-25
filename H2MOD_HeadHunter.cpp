@@ -19,7 +19,7 @@ void HeadHunter::spawn(unsigned int object_datum, int count, float x, float y, f
 				call_object_placement_data_new(nObject, object_datum, player_datum, 0);
 				*(float*)(nObject + 0x1C) = h2mod->get_player_x(0, true) * static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
 				*(float*)(nObject + 0x20) = h2mod->get_player_y(0, true) * static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
-				*(float*)(nObject + 0x24) = (h2mod->get_player_z(0, true) + 5.0f) * static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+				*(float*)(nObject + 0x24) = h2mod->get_player_z(0, true) * static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
 				TRACE_GAME("object_datum = %08X, x=%d, y=%d, z=%d", object_datum, *(float*)(nObject + 0x1C), *(float*)(nObject + 0x20), *(float*)(nObject + 0x24));
 				unsigned int object_gamestate_datum = call_object_new(nObject);
 				call_add_object_to_sync(object_gamestate_datum);
