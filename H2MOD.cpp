@@ -620,7 +620,6 @@ BYTE H2MOD::get_unit_team_index(int unit_datum_index)
 	}
 	return tIndex;
 }
-
 void H2MOD::set_unit_team_index(int unit_datum_index, BYTE team)
 {
 	int unit_object = call_get_object(unit_datum_index, 3);
@@ -892,6 +891,35 @@ void H2MOD::PatchWeaponsInteraction(bool b_Enable)
 	WriteBytesASM(offset, assm, 5);
 }
 
+void OnAutoPickUpHandler(int PlayerIndex, unsigned int ObjectDatum);
+
+void H2MOD::PatchAutoPickups(bool b_enable) // Host Sided
+{
+	DWORD offset = (!h2mod->Server) ? 0x58789 : 0x60C81;
+	DWORD Foffset = (!h2mod->Server) ? 0x57AA5 : 0x5FF9D;
+
+	if (b_enable)
+		PatchCall(h2mod->GetBase() + offset, (DWORD)OnAutoPickUpHandler);
+	else
+		PatchCall(h2mod->GetBase() + offset, h2mod->GetBase() + Foffset);
+
+}
+
+void OnAutoPickUpHandler(int PlayerIndex, unsigned int ObjectDatum)
+{
+
+	char(_cdecl*AutoHandler)(int, unsigned int);
+	AutoHandler = (char(_cdecl*)(int, unsigned int))((char*)h2mod->GetBase() + ((!h2mod->Server) ? 0x57AA5 : 0x5FF9D));
+	if (b_HeadHunter)
+	{
+		if (!hh->PickUpHandler(PlayerIndex, ObjectDatum))
+			return;
+	}
+	AutoHandler(PlayerIndex, ObjectDatum);
+	return;
+
+}
+
 static bool OnNewRound(int a1)
 {
 
@@ -908,6 +936,7 @@ static bool OnNewRound(int a1)
 
 
 }
+
 void H2MOD::PatchNewRound(bool hackit)//All thanks to Glitchy Scripts who wrote this <3
 {
 	//Replace the Function call  At Offset with OnNewRound
@@ -1199,6 +1228,9 @@ bool __cdecl OnPlayerSpawn(int a1)
 #pragma endregion
 
 	if (!b_Infection) {
+		h2mod->PatchWeaponsInteraction(true);
+	}
+	if (!b_HeadHunter) {
 		h2mod->PatchWeaponsInteraction(true);
 	}
 

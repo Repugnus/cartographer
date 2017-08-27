@@ -34,7 +34,9 @@ void HeadHunter::spawn(unsigned int object_datum, int count, float x, float y, f
 
 void HeadHunter::Initialize() {
 	TRACE_GAME("[H2Mod-HeadHunter] : Initialize()");
-
+	if (isHost || h2mod->Server) {
+		h2mod->PatchAutoPickups(true);
+	}
 	if (this->HeadHunterPlayers.size() > 0) {
 		for (auto it = this->HeadHunterPlayers.begin(); it != this->HeadHunterPlayers.end(); ++it)
 		{
@@ -56,6 +58,30 @@ void HeadHunter::Initialize() {
 	HeadHunterPlayer* host = new HeadHunterPlayer;
 	wcscpy(&host->PlayerName[0], h2mod->get_local_player_name());
 	this->HeadHunterPlayers[host] = true;
+}
+
+bool HeadHunter::PickUpHandler(int PlayerIndex, unsigned int ObjectDatum) {
+	bool ShouldInteract = true;
+	if (ObjectDatum != -1)
+	{
+		int DynamicObjBase = *(DWORD *)(((char*)h2mod->GetBase()) + ((h2mod->Server) ? 0x50C8EC : 0x4E461C));
+		int DA = *(DWORD *)(*(DWORD *)(DynamicObjBase + 68) + 12 * (unsigned __int16)ObjectDatum + 8);
+		//Lets Check if the object we interact with is Juggernaut_powerup//Skull
+		if (*(DWORD*)DA == Weapon::ball)
+		{
+			//Oh Yea Lets Delete it and add it to a level var
+			call_hs_object_destroy(ObjectDatum);
+			/*
+			int* level = (int*)(0x30005960 + PlayerIndex * 0x20);
+			*/
+			int Index = PlayerIndex & 0x000FFFF;
+			*(int*)(0x30005960 + Index * 0x20) == *(int*)(0x30005960 + Index * 0x20) + 1;
+
+			ShouldInteract = false;
+		}
+	}
+	return ShouldInteract;
+
 }
 
 void HeadHunter::PlayerDied(int unit_datum_index) {
@@ -80,4 +106,11 @@ void HeadHunter::SpawnPlayer(int PlayerIndex)
 
 	TRACE_GAME("[H2Mod-HeadHunter]: SpawnPlayer(%i) : %ws ", PlayerIndex, pName);
 
+}
+void HeadHunter::Deinitialize() {
+	if (isHost || h2mod->Server)
+	{
+		h2mod->PatchAutoPickups(false);
+
+	}
 }

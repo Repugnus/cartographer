@@ -115,6 +115,7 @@ public:
 		int get_player_index_from_name(wchar_t* playername);
 		int get_player_index_from_unit_datum(int unit_datum_index);
 		BYTE get_unit_team_index(int unit_datum_index);
+		BYTE get_Player_team_index(BYTE PlayerIndex);
 		void set_unit_team_index(int unit_datum_index, BYTE team);
 		void set_unit_biped(BYTE biped, int pIndex);
 		void set_unit_speed_patch(bool hackit);
@@ -126,6 +127,7 @@ public:
 		void DisableSound(int sound);
 		void PatchNewRound(bool hackit); 
 		void PatchWeaponsInteraction(bool b_Enable);
+		void PatchAutoPickups(bool b_enable);
 		BOOL Server;
 		std::unordered_map<NetworkPlayer*, bool> NetworkPlayers;
 		std::unordered_map<wchar_t*, int> SoundMap;

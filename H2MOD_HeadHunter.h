@@ -15,6 +15,7 @@ class HeadHunter
 {
 public:
 	void Initialize();
+	void Deinitialize();
 	bool PickUpHandler(int PlayerIndex, unsigned int ObjectDatum);
 	void SpawnPlayer(int PlayerIndex);
 	void PlayerDied(int unit_datum_index); // We need to start using PlayerIndex here for sanity.
